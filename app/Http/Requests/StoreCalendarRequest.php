@@ -24,10 +24,19 @@ class StoreCalendarRequest extends FormRequest
     public function rules()
     {
         return [
-            'date' => 'required|string',
-            'title' => 'required|string',
-            'description' => 'nullable|string',
-            'duration' => 'nullable|string',
+            'date' => 'required|date_format:d.m.y',
+            'title' => 'required|string|min:5',
+            'description' => 'nullable|string|min:10',
+            'duration' => ['nullable', 'string', 'regex:/^([0-9]{2}\:[0-9]{2}\-[0-9]{2}\:[0-9]{2})$/'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'date.date_format' => 'Please, input a correct date in format: 30.10.22',
+            'duration.regex' => 'Duration must be in format: start time - end time, (hour:min): 00:00-00:00'
         ];
     }
 }
+

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexCalendarRequest;
 use App\Http\Requests\StoreCalendarRequest;
 use App\Http\Requests\UpdateCalendarRequest;
 use App\Http\Resources\V1\CalendarResource;
 use App\Models\Calendar;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class CalendarController extends Controller
 {
@@ -17,7 +17,7 @@ class CalendarController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(IndexCalendarRequest $request)
     {
         $data = $request->all();
 
@@ -34,7 +34,7 @@ class CalendarController extends Controller
      * @param  \App\Http\Requests\StoreCalendarRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $user, StoreCalendarRequest $request)
+    public function store(StoreCalendarRequest $request)
     {
         $barerToken = $request->bearerToken();
 
@@ -42,13 +42,25 @@ class CalendarController extends Controller
 
         $data = $request->validated();
 
-        if(!$token && isset($data['duration'])) {
-            return response(['massage' => 'Must be Authorized for set Duration time!']);
-        }else{
-            $calendar = Calendar::create($data);
-        }
+        if (!$token && isset($data['duration'])) {
 
-        return new CalendarResource($calendar);
+            $get_dates = Calendar::all(['duration']);
+
+            $times = explode('-', $data['duration']);
+
+            foreach ($get_dates as $get_date) {
+
+                $get_times = explode('-', $get_date->duration);
+
+                if (Service::checkExistsTimeCalendar($times, $get_times)) {
+                    return response(['massage' => 'This duration time is already taken!']);
+                }
+            }
+                return new CalendarResource(Calendar::create($data));
+
+        } else {
+            return new CalendarResource(Calendar::create($data));
+        }
     }
 
     /**
